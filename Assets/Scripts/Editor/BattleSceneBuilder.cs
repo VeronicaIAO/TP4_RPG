@@ -101,10 +101,8 @@ namespace TPRPG.EditorTools
             a.recoveryCost = recovery;
             a.actionAnimation = look.anim;
             a.reaction = look.reaction;
-            a.knockback = look.knockback;
             a.effectColor = look.color;
             a.sound = look.sound;
-            a.shakeCamera = look.shake;
             a.effects = new List<EffectEntry>(effects);
         }
 
@@ -305,7 +303,6 @@ namespace TPRPG.EditorTools
             cam.fieldOfView = 40f;
             camGO.AddComponent<AudioListener>();
             camGO.AddComponent<PhysicsRaycaster>();
-            var shake = camGO.AddComponent<CameraShake>();
             camGO.transform.position = new Vector3(0f, 1.9f, -6.2f);
             camGO.transform.rotation = Quaternion.Euler(14f, 0f, 0f);
 
@@ -320,18 +317,16 @@ namespace TPRPG.EditorTools
 
             BuildSchoolyard();
 
-            var turnMat = Mat("TurnMarker", new Color(1f, 0.85f, 0.2f));
-            var targetMat = Mat("TargetMarker", new Color(1f, 0.2f, 0.2f));
             var fighters = Group("Fighters");
             var playerSide = Group("PlayerSide", fighters.transform);
             var enemySide = Group("EnemySide", fighters.transform);
 
             Vector3 playerPos = new Vector3(-1.3f, 0.05f, -3.2f);
             Vector3 enemyPos = new Vector3(1.9f, 0.05f, 2.5f);
-            var daniela = CreateUnit("Daniela", d.daniela, playerSide.transform, playerPos, enemyPos, true, DanielaGlb, DanielaObj, false, turnMat, targetMat);
-            var lara = CreateUnit("Lara", d.lara, enemySide.transform, enemyPos, playerPos, false, LaraGlb, LaraObj, true, turnMat, targetMat);
+            var daniela = CreateUnit("Daniela", d.daniela, playerSide.transform, playerPos, enemyPos, true, DanielaGlb, DanielaObj);
+            var lara = CreateUnit("Lara", d.lara, enemySide.transform, enemyPos, playerPos, false, LaraGlb, LaraObj);
 
-            var ui = BuildUI(out Image screenFlash);
+            var ui = BuildUI();
 
             var es = new GameObject("EventSystem", typeof(EventSystem));
             AddInputModule(es);
@@ -346,10 +341,7 @@ namespace TPRPG.EditorTools
             manager.choreography = choreography;
             choreography.feedback = feedback;
 
-            feedback.cam = cam;
-            feedback.cameraShake = shake;
             feedback.sfx = sfx;
-            feedback.screenFlash = screenFlash;
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene, ScenePath);
@@ -385,10 +377,6 @@ namespace TPRPG.EditorTools
             var platform = Mat("Platform", new Color(0.8f, 0.85f, 0.55f));
             var trunk = Mat("Trunk", new Color(0.45f, 0.3f, 0.18f));
             var leaves = Mat("Leaves", new Color(0.2f, 0.5f, 0.25f));
-            var wall = Mat("SchoolWall", new Color(0.95f, 0.88f, 0.72f));
-            var roof = Mat("SchoolRoof", new Color(0.75f, 0.3f, 0.25f));
-            var glass = Mat("SchoolWindow", new Color(0.6f, 0.82f, 0.98f));
-            var door = Mat("SchoolDoor", new Color(0.45f, 0.3f, 0.2f));
 
             var yard = Group("Schoolyard").transform;
             Prim(PrimitiveType.Plane, "Ground", yard, new Vector3(0f, 0f, 4f), new Vector3(4f, 1f, 3f), grass);
@@ -398,33 +386,6 @@ namespace TPRPG.EditorTools
             var background = Group("Background", yard).transform;
             Prim(PrimitiveType.Sphere, "Hill1", background, new Vector3(-6f, -1f, 14f), new Vector3(14f, 5f, 4f), darkGrass);
             Prim(PrimitiveType.Sphere, "Hill2", background, new Vector3(7f, -1.5f, 15f), new Vector3(16f, 6f, 4f), darkGrass);
-
-            var school = Group("School", background).transform;
-            school.localPosition = new Vector3(0.5f, 0f, 12f);
-            Prim(PrimitiveType.Cube, "Building", school, new Vector3(0f, 2.2f, 0f), new Vector3(9f, 4.4f, 2f), wall);
-            Prim(PrimitiveType.Cube, "Roof", school, new Vector3(0f, 4.6f, 0f), new Vector3(9.6f, 0.4f, 2.4f), roof);
-            Prim(PrimitiveType.Cube, "Door", school, new Vector3(0f, 0.8f, -1.01f), new Vector3(1.2f, 1.6f, 0.05f), door);
-            for (int row = 0; row < 2; row++)
-                for (int col = 0; col < 6; col++)
-                {
-                    float x = -3.75f + col * 1.5f;
-                    if (row == 0 && Mathf.Abs(x) < 1f) continue;
-                    Prim(PrimitiveType.Cube, $"Window_{row}_{col}", school, new Vector3(x, 1.4f + row * 1.6f, -1.01f), new Vector3(0.9f, 0.8f, 0.05f), glass);
-                }
-            var sign = Group("Sign", school);
-            sign.transform.localPosition = new Vector3(0f, 3.9f, -1.06f);
-            var tm = sign.AddComponent<TextMesh>();
-            var signFont = LoadFont();
-            tm.font = signFont;
-            tm.text = "SCHOOL";
-            tm.fontSize = 64;
-            tm.characterSize = 0.06f;
-            tm.anchor = TextAnchor.MiddleCenter;
-            tm.alignment = TextAlignment.Center;
-            tm.color = new Color(0.35f, 0.2f, 0.15f);
-            var signRenderer = sign.GetComponent<MeshRenderer>();
-            if (signRenderer == null) signRenderer = sign.AddComponent<MeshRenderer>();
-            if (signFont != null) signRenderer.sharedMaterial = signFont.material;
 
             float[] xs = { -7f, -4.5f, 4.5f, 7.5f, 10f };
             for (int i = 0; i < xs.Length; i++)
@@ -456,7 +417,7 @@ namespace TPRPG.EditorTools
         }
 
         static BattleUnit CreateUnit(string objName, CharacterData data, Transform parent, Vector3 pos, Vector3 facing, bool playerSide,
-                                     string glbPath, string objPath, bool phone, Material turnMat, Material targetMat)
+                                     string glbPath, string objPath)
         {
             var root = new GameObject(objName);
             root.transform.SetParent(parent, false);
@@ -495,23 +456,6 @@ namespace TPRPG.EditorTools
             anim.modelRoot = model;
             anim.clips = prefab != null ? LoadClips(modelPath) : new AnimationClip[0];
 
-            GameObject prop = null;
-            if (phone)
-            {
-                var caseMat = Mat("Phone_Case", new Color(0.12f, 0.12f, 0.15f));
-                var screenMat = Mat("Phone_Screen", new Color(0.55f, 0.85f, 1f));
-                prop = Group("Phone", armRight != null ? armRight : root.transform);
-                float inv = armRight != null ? 1f / ModelScale : 1f;
-                prop.transform.localPosition = armRight != null ? new Vector3(0.14f, 0f, 0.02f) : new Vector3(0.25f, 0.8f, 0.3f);
-                prop.transform.localRotation = Quaternion.identity;
-                Prim(PrimitiveType.Cube, "Case", prop.transform, Vector3.zero, new Vector3(0.08f, 0.15f, 0.015f) * inv, caseMat);
-                Prim(PrimitiveType.Cube, "Screen", prop.transform, new Vector3(0f, 0f, -0.009f * inv), new Vector3(0.07f, 0.13f, 0.005f) * inv, screenMat);
-                prop.SetActive(false);
-            }
-
-            var ring = Prim(PrimitiveType.Cylinder, "TurnMarker", root.transform, new Vector3(0f, 0.03f, 0f), new Vector3(1.1f, 0.02f, 1.1f), turnMat);
-            var arrow = Prim(PrimitiveType.Cube, "TargetMarker", root.transform, new Vector3(0f, 1.75f, 0f), Vector3.one * 0.2f, targetMat, new Vector3(45f, 0f, 45f));
-
             var col = root.AddComponent<BoxCollider>();
             col.center = new Vector3(0f, 0.65f, 0f);
             col.size = new Vector3(0.8f, 1.3f, 0.8f);
@@ -523,11 +467,6 @@ namespace TPRPG.EditorTools
             vis.head = head;
             vis.armLeft = armLeft;
             vis.armRight = armRight;
-            vis.prop = prop;
-            vis.turnMarker = ring;
-            vis.targetMarker = arrow;
-            vis.impactHeight = 0.6f;
-            vis.approachDistance = 0.85f;
 
             root.AddComponent<UnitVoice>().voice = data.voice;
 
@@ -716,7 +655,7 @@ namespace TPRPG.EditorTools
             v.childForceExpandHeight = false;
         }
 
-        static BattleUI BuildUI(out Image screenFlash)
+        static BattleUI BuildUI()
         {
             font = LoadFont();
             rounded = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
@@ -733,9 +672,6 @@ namespace TPRPG.EditorTools
 
             ui.enemyBoxes = new[] { StatusBox("RivalBox", c, new Vector2(0f, 1f), new Vector2(60f, -320f), new Vector2(760f, -50f)) };
             ui.playerBoxes = new[] { StatusBox("PlayerBox", c, new Vector2(1f, 0f), new Vector2(-760f, 315f), new Vector2(-60f, 585f)) };
-
-            ui.atbModeText = Txt("ATBModeText", c, "", 24, TextAnchor.UpperRight, new Color(0.15f, 0.2f, 0.3f),
-                Vector2.one, Vector2.one, new Vector2(-760f, -110f), new Vector2(-40f, -40f));
 
             var dialog = Box("DialogBox", c, Vector2.zero, new Vector2(1f, 0f), new Vector2(20f, 20f), new Vector2(-20f, 295f), new Color(0.17f, 0.27f, 0.36f), 9f, out Image tmpImg);
             var frame = Stretch("Frame", dialog, 8f);
@@ -794,11 +730,6 @@ namespace TPRPG.EditorTools
             ui.targetContainer = targetList;
             var closeTargets = Rect("Close", targets, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-150f, 18f), new Vector2(150f, 88f));
             ui.targetCloseButton = Btn("Button", closeTargets, "BACK", new Color(0.55f, 0.55f, 0.6f), 30, Color.white, out t);
-
-            var flash = Stretch("ScreenFlash", c);
-            screenFlash = flash.gameObject.AddComponent<Image>();
-            screenFlash.color = new Color(1f, 1f, 1f, 0f);
-            screenFlash.raycastTarget = false;
 
             var result = Stretch("ResultPanel", c);
             var dim = result.gameObject.AddComponent<Image>();

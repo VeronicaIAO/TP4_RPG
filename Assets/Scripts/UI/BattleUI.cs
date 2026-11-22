@@ -15,7 +15,6 @@ namespace TPRPG
         public Text dialogText;
         public GameObject continueIndicator;
         [Min(1)] public int dialogLines = 2;
-        public Text atbModeText;
 
         public GameObject commandPanel;
         public Button attackButton;
@@ -100,10 +99,7 @@ namespace TPRPG
         {
             if (manager == null) return;
             foreach (var b in boxes) b.Refresh(b.Unit == currentUnit && menu != Menu.Hidden);
-            if (atbModeText != null)
-                atbModeText.text = manager.config != null && manager.config.atbMode == ATBMode.Wait
-                    ? "WAIT mode: time stops while you choose" : "ACTIVE mode: time keeps running";
-            if (continueIndicator != null) continueIndicator.SetActive(menu == Menu.Hidden && !manager.BattleOver && Mathf.Repeat(Time.time, 0.8f) > 0.4f);
+            if (continueIndicator != null) continueIndicator.SetActive(menu == Menu.Hidden && !manager.BattleOver);
 
             if (menu == Menu.Targets && pendingAction != null && currentUnit != null)
             {
@@ -126,7 +122,6 @@ namespace TPRPG
             skillsPanel.SetActive(m == Menu.Skills);
             bagPanel.SetActive(m == Menu.Bag);
             targetPanel.SetActive(m == Menu.Targets);
-            if (m != Menu.Targets) ClearTargetMarkers();
             if (m == Menu.Hidden) RefreshDialog();
         }
 
@@ -150,10 +145,8 @@ namespace TPRPG
         {
             if (manager.BattleOver) return;
             if (u == currentUnit && menu != Menu.Hidden) return;
-            if (currentUnit != null && currentUnit != u) currentUnit.Visual.SetTurnMarker(false);
             currentUnit = u;
             pendingAction = null;
-            u.Visual.SetTurnMarker(true);
             BackToCommands();
         }
 
@@ -173,7 +166,6 @@ namespace TPRPG
 
         public void HideMenus()
         {
-            if (currentUnit != null) currentUnit.Visual.SetTurnMarker(false);
             currentUnit = null;
             pendingAction = null;
             ShowPanel(Menu.Hidden);
@@ -249,8 +241,6 @@ namespace TPRPG
         {
             foreach (var g in targetEntries) Destroy(g);
             targetEntries.Clear();
-            ClearTargetMarkers();
-
             currentCandidates.Clear();
             currentCandidates.AddRange(ActionResolver.Candidates(a.target, currentUnit, manager.TeamOf(currentUnit), manager.RivalsOf(currentUnit)));
 
@@ -261,8 +251,6 @@ namespace TPRPG
                 var e = Instantiate(entryTemplate, targetContainer);
                 e.gameObject.SetActive(true);
                 e.Setup(unit.DisplayName, unit.IsAlive ? $"{unit.currentHealth}/{unit.MaxHealth}" : "K.O.", true);
-                e.onHighlight = () => { ClearTargetMarkers(); unit.Visual.SetTargetMarker(true); };
-                e.onUnhighlight = () => unit.Visual.SetTargetMarker(false);
                 e.onClick = () => { Click(); Confirm(unit); };
                 targetEntries.Add(e.gameObject);
                 if (first == null) first = e.button;
@@ -272,18 +260,10 @@ namespace TPRPG
             Focus(first != null ? first : targetCloseButton);
         }
 
-        void ClearTargetMarkers()
-        {
-            if (manager == null) return;
-            foreach (var u in manager.All()) u.Visual.SetTargetMarker(false);
-        }
-
         void Confirm(BattleUnit target)
         {
             var u = currentUnit;
             var a = pendingAction;
-            ClearTargetMarkers();
-            if (u != null) u.Visual.SetTurnMarker(false);
             currentUnit = null;
             pendingAction = null;
             ShowPanel(Menu.Hidden);
@@ -293,13 +273,6 @@ namespace TPRPG
         public void UnitClicked(BattleUnit u)
         {
             if (menu == Menu.Targets && currentCandidates.Contains(u)) { Click(); Confirm(u); }
-        }
-
-        public void UnitHovered(BattleUnit u, bool inside)
-        {
-            if (menu != Menu.Targets || !currentCandidates.Contains(u)) return;
-            if (inside) ClearTargetMarkers();
-            u.Visual.SetTargetMarker(inside);
         }
 
         public void UnitFell(BattleUnit u)

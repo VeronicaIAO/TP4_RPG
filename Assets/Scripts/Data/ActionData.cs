@@ -13,10 +13,8 @@ namespace TPRPG
 
         public ActionAnimation actionAnimation = ActionAnimation.Punch;
         public HitReaction reaction = HitReaction.Hurt;
-        [Range(0f, 2f)] public float knockback = 0.3f;
         public Color effectColor = Color.white;
         public FeedbackSound sound = FeedbackSound.Hit;
-        public bool shakeCamera = false;
 
         public virtual string CostLabel => "";
     }

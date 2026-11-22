@@ -21,6 +21,7 @@ namespace TPRPG
         public Color activeColor = new Color(1f, 0.93f, 0.6f);
         public Color knockedOutColor = new Color(0.8f, 0.7f, 0.7f);
         public bool tintName = true;
+        public Color atbColor = new Color(0.3f, 0.8f, 0.95f);
 
         public void Bind(BattleUnit u)
         {
@@ -48,15 +49,7 @@ namespace TPRPG
             if (manaBar != null && u.MaxMana > 0) manaBar.Set((float)u.currentMana / u.MaxMana, new Color(0.3f, 0.55f, 1f));
             if (manaText != null) manaText.text = u.MaxMana > 0 ? $"{u.currentMana}/ {u.MaxMana}" : "";
 
-            if (atbBar != null)
-            {
-                if (!u.IsAlive) atbBar.Set(0f, Color.gray);
-                else if (u.atb < 0f) atbBar.Set(-u.atb / BattleUnit.MaxATB, new Color(0.85f, 0.35f, 0.25f));
-                else if (u.atb >= BattleUnit.MaxATB) atbBar.Set(1f, Color.Lerp(new Color(1f, 0.85f, 0.2f), Color.white, Mathf.PingPong(Time.time * 3f, 1f)));
-                else atbBar.Set(u.atb / BattleUnit.MaxATB, new Color(0.3f, 0.8f, 0.95f));
-            }
-            if (atbText != null)
-                atbText.text = !u.IsAlive ? "" : (u.atb < 0f ? "RECOVER" : (u.atb >= BattleUnit.MaxATB ? "READY!" : ""));
+            if (atbBar != null) atbBar.Set(u.IsAlive ? Mathf.Max(0f, u.atb) / BattleUnit.MaxATB : 0f, atbColor);
 
             if (statusText != null) statusText.text = u.StatusSummary();
         }
