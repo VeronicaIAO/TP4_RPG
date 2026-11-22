@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65e6a0d6c076246468756480cc510fc0, type: 3}
+  m_Name: Daniela_Shove
+  m_EditorClassIdentifier: Assembly-CSharp::TPRPG.SkillData
+  displayName: Shove
+  description: Two-handed push that knocks her back and delays her ATB bar. Fast
+    recovery.
+  target: 0
+  recoveryCost: -25
+  effects:
+  - type: 0
+    power: 7
+    scaling: 1
+    stat: 0
+    multiplier: 1.5
+    durationTurns: 3
+    atbAmount: 0
+    drainPercent: 0.5
+  - type: 4
+    power: 10
+    scaling: 0
+    stat: 0
+    multiplier: 1.5
+    durationTurns: 3
+    atbAmount: -45
+    drainPercent: 0.5
+  actionAnimation: 4
+  reaction: 3
+  knockback: 1.1
+  effectColor: {r: 0.8, g: 0.9, b: 1, a: 1}
+  sound: 1
+  shakeCamera: 0
+  shoutWords: []
+  manaCost: 6

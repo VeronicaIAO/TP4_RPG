@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65e6a0d6c076246468756480cc510fc0, type: 3}
+  m_Name: Daniela_HairPull
+  m_EditorClassIdentifier: Assembly-CSharp::TPRPG.SkillData
+  displayName: Hair Pull
+  description: Grabs her by the hair and yanks hard. Huge damage, but leaves Daniela
+    worn out (very slow recovery).
+  target: 0
+  recoveryCost: 50
+  effects:
+  - type: 0
+    power: 26
+    scaling: 1
+    stat: 0
+    multiplier: 1.5
+    durationTurns: 3
+    atbAmount: 0
+    drainPercent: 0.5
+  actionAnimation: 3
+  reaction: 2
+  knockback: 0.5
+  effectColor: {r: 1, g: 0.6, b: 0.2, a: 1}
+  sound: 2
+  shakeCamera: 1
+  shoutWords: []
+  manaCost: 9

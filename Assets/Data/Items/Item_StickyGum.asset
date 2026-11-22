@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3def714f676fdb41b957ba52f987e34, type: 3}
+  m_Name: Item_StickyGum
+  m_EditorClassIdentifier: Assembly-CSharp::TPRPG.ItemData
+  displayName: Sticky Gum
+  description: 'Debuff: -40% SPD on the rival and delays her ATB bar.'
+  target: 0
+  recoveryCost: 5
+  effects:
+  - type: 4
+    power: 10
+    scaling: 0
+    stat: 0
+    multiplier: 1.5
+    durationTurns: 3
+    atbAmount: -40
+    drainPercent: 0.5
+  - type: 3
+    power: 10
+    scaling: 0
+    stat: 3
+    multiplier: 0.6
+    durationTurns: 3
+    atbAmount: 0
+    drainPercent: 0.5
+  actionAnimation: 8
+  reaction: 5
+  knockback: 0
+  effectColor: {r: 1, g: 0.5, b: 0.75, a: 1}
+  sound: 9
+  shakeCamera: 0
+  shoutWords: []

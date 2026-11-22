@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6e500319c70e8d4e82afd3ae92892be, type: 3}
+  m_Name: Lara_Voice
+  m_EditorClassIdentifier: Assembly-CSharp::TPRPG.CharacterVoice
+  volume: 0.9
+  pitchVariation: 0.06
+  attackGrunts:
+  - label: Punch
+    action: {fileID: 11400000, guid: bfe8ad0d0a57a3b4f90deaab3f2d17ea, type: 2}
+    clips: []
+  - label: Callout
+    action: {fileID: 11400000, guid: ee7a4d9ebd873b548b559a8527a8bae4, type: 2}
+    clips: []
+  - label: Defamation
+    action: {fileID: 11400000, guid: 35fd8e242cb495944bbe3a8ca21c2488, type: 2}
+    clips: []
+  - label: Spit
+    action: {fileID: 11400000, guid: 203dde71ca5276b41b2b0b5802814b4f, type: 2}
+    clips: []
+  fallbackAttackGrunts: []
+  reactions:
+    hurt: []
+    pain: []
+    surprise: []
+    outrage: []
+    disgust: []
+  other:
+    guard: []
+    itemUse: []
+    turnReady: []
+    knockedOut: []
+    victory: []

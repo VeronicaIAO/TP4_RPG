@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14112e5364a5b074f821b8c2130b572e, type: 3}
+  m_Name: Rival_Lara
+  m_EditorClassIdentifier: Assembly-CSharp::TPRPG.CharacterData
+  displayName: Lara
+  mainColor: {r: 1, g: 0.55, b: 0.75, a: 1}
+  maxHealth: 200
+  maxMana: 45
+  attack: 13
+  defense: 12
+  wit: 16
+  speed: 9
+  startATBMin: 0
+  startATBMax: 45
+  basicAttack: {fileID: 11400000, guid: bfe8ad0d0a57a3b4f90deaab3f2d17ea, type: 2}
+  guardAction: {fileID: 0}
+  skills:
+  - {fileID: 11400000, guid: ee7a4d9ebd873b548b559a8527a8bae4, type: 2}
+  - {fileID: 11400000, guid: 35fd8e242cb495944bbe3a8ca21c2488, type: 2}
+  - {fileID: 11400000, guid: 203dde71ca5276b41b2b0b5802814b4f, type: 2}
+  aiProfile: 0
+  skillChance: 0.55
+  voice: {fileID: 11400000, guid: 40d1090a26136f8448d201f866326c19, type: 2}
