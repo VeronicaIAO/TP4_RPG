@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65e6a0d6c076246468756480cc510fc0, type: 3}
+  m_Name: Juana_WordsOfSupport
+  m_EditorClassIdentifier: Assembly-CSharp::TPRPG.SkillData
+  displayName: Words Of Support
+  description: 
+  target: 3
+  recoveryCost: 0
+  effects:
+  - type: 3
+    power: 1.3
+    scaling: 2
+    stat: 0
+    multiplier: 0
+    durationTurns: 4
+    atbAmount: 0
+    drainPercent: 0
+  actionAnimation: 10
+  reaction: 1
+  effectColor: {r: 0.837453, g: 0.514151, b: 1, a: 1}
+  sound: 1
+  manaCost: 0

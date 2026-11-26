@@ -25,9 +25,11 @@ MonoBehaviour:
   basicAttack: {fileID: 11400000, guid: 87a58aec920c37c4ca84a22de74c6dd6, type: 2}
   guardAction: {fileID: 11400000, guid: 8e6d4f023b72dd54a9ec646ac24d23ec, type: 2}
   skills:
-  - {fileID: 11400000, guid: 2a57240562adfe24ab9b0fbedaae4feb, type: 2}
-  - {fileID: 11400000, guid: 9e3041f09c4f66c43b2581d03228c8a3, type: 2}
-  - {fileID: 11400000, guid: 452cdd53d8314fd4c847966f71af9b46, type: 2}
+  - {fileID: 11400000, guid: 5762c9d08d29a8d4aa18318338d6efb8, type: 2}
+  - {fileID: 11400000, guid: 7a0beb26014e7fe4bba922d4b168caed, type: 2}
+  - {fileID: 11400000, guid: 6dcdc64e7422f9748aa39d4a5c082292, type: 2}
+  - {fileID: 11400000, guid: e8658935b44dcd14298f8d0ced849abb, type: 2}
+  - {fileID: 0}
   aiProfile: 0
   skillChance: 0.4
   voice: {fileID: 11400000, guid: 852167d296554fd459a6e4790aebf083, type: 2}

@@ -37,11 +37,7 @@ namespace TPRPG
         public RectTransform targetContainer;
         public Button targetCloseButton;
 
-        public Button teamButton;
-        public GameObject teamButtonRoot;
-        public GameObject teamPanel;
-        public RectTransform teamContainer;
-        public Button teamCloseButton;
+        public Button ChangeTeammateButton;
 
         public GameObject resultPanel;
         public Text resultText;
@@ -84,9 +80,7 @@ namespace TPRPG
                 else if (returnMenu == Menu.Bag) OpenBag();
                 else BackToCommands();
             });
-            if (teamButton != null) teamButton.onClick.AddListener(() => { Click(); OpenTeam(); });
-            if (teamCloseButton != null) teamCloseButton.onClick.AddListener(() => { Click(); BackToCommands(); });
-            if (teamPanel != null) teamPanel.SetActive(false);
+            if (ChangeTeammateButton != null) ChangeTeammateButton.onClick.AddListener(() => { Click(); SwapTeammate(); });
             if (restartButton != null) restartButton.onClick.AddListener(() => manager.Restart());
 
             if (resultPanel != null) resultPanel.SetActive(false);
@@ -109,8 +103,8 @@ namespace TPRPG
         {
             if (manager == null) return;
             foreach (var b in boxes) b.Refresh(b.Unit == currentUnit && menu != Menu.Hidden);
-            if (teamButton != null && menu == Menu.Commands) teamButton.interactable = manager.CanSwap;
             if (continueIndicator != null) continueIndicator.SetActive(menu == Menu.Hidden && !manager.BattleOver);
+            if (ChangeTeammateButton != null && menu == Menu.Commands) ChangeTeammateButton.interactable = manager.CanSwap;
 
             if (menu == Menu.Targets && pendingAction != null && currentUnit != null)
             {
@@ -133,8 +127,6 @@ namespace TPRPG
             skillsPanel.SetActive(m == Menu.Skills);
             bagPanel.SetActive(m == Menu.Bag);
             targetPanel.SetActive(m == Menu.Targets);
-            if (teamPanel != null) teamPanel.SetActive(m == Menu.Team);
-            if (teamButtonRoot != null) teamButtonRoot.SetActive(m == Menu.Commands);
             //if (m == Menu.Hidden) RefreshDialog();
         }
 
@@ -303,29 +295,16 @@ namespace TPRPG
         }
 
 
-        void OpenTeam()
+        void SwapTeammate()
         {
-            if (currentUnit == null || teamPanel == null || teamContainer == null) return;
-            foreach (var g in teamEntries) Destroy(g);
-            teamEntries.Clear();
-
-            if (teamContainer.GetComponent<LayoutGroup>() == null)
+            if (manager == null) return;
+            foreach (var r in manager.reserve)
             {
-                var v = teamContainer.gameObject.AddComponent<VerticalLayoutGroup>();
-                v.spacing = 10f;
-                v.childControlWidth = true;
-                v.childControlHeight = true;
-                v.childForceExpandWidth = true;
-                v.childForceExpandHeight = false;
+                if (r == null || !r.IsAlive) continue;
+                if (!manager.SwapActivePlayer(r)) Prompt("Wait for the current action to finish.");
+                return;
             }
-
-            var roster = new List<BattleUnit>(manager.players);
-            roster.AddRange(manager.reserve);
-            foreach (var u in roster) AddTeamEntry(u);
-
-            Prompt("Who will take over?");
-            ShowPanel(Menu.Team);
-            Focus(teamCloseButton);
+            Prompt("No teammate available!");
         }
 
         Text MakeText(Transform parent, string objName, string text, int size, Color color, Vector2 aMin, Vector2 aMax, Vector2 oMin, Vector2 oMax)
@@ -354,7 +333,6 @@ namespace TPRPG
             bool onField = manager.players.Contains(unit);
 
             var root = new GameObject("Teammate_" + unit.DisplayName, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-            root.transform.SetParent(teamContainer, false);
             root.GetComponent<LayoutElement>().preferredHeight = 150f;
             var bg = root.GetComponent<Image>();
             bg.color = !unit.IsAlive ? new Color(0.78f, 0.7f, 0.7f) : (onField ? new Color(1f, 0.95f, 0.7f) : new Color(0.95f, 0.95f, 0.98f));

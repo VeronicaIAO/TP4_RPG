@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65e6a0d6c076246468756480cc510fc0, type: 3}
+  m_Name: Juana_SharedBrunch
+  m_EditorClassIdentifier: Assembly-CSharp::TPRPG.SkillData
+  displayName: Shared Brunch
+  description: 
+  target: 3
+  recoveryCost: 0
+  effects:
+  - type: 1
+    power: 30
+    scaling: 2
+    stat: 0
+    multiplier: 0
+    durationTurns: 3
+    atbAmount: 0
+    drainPercent: 0
+  actionAnimation: 10
+  reaction: 1
+  effectColor: {r: 0.990566, g: 0.72371614, b: 0.4251958, a: 1}
+  sound: 1
+  manaCost: 0

@@ -5278,7 +5278,7 @@ Transform:
   m_GameObject: {fileID: 745859235}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.25299826, z: -0, w: 0.9674668}
-  m_LocalPosition: {x: -1.73, y: 0.05, z: -6}
+  m_LocalPosition: {x: -1.772, y: 0.05, z: -6.075}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -14591,11 +14591,7 @@ MonoBehaviour:
   targetPanel: {fileID: 789247778}
   targetContainer: {fileID: 1977448021}
   targetCloseButton: {fileID: 582575313}
-  teamButton: {fileID: 0}
-  teamButtonRoot: {fileID: 0}
-  teamPanel: {fileID: 0}
-  teamContainer: {fileID: 0}
-  teamCloseButton: {fileID: 0}
+  ChangeTeammateButton: {fileID: 1423184582}
   resultPanel: {fileID: 1480859165}
   resultText: {fileID: 1611101507}
   resultSubtitle: {fileID: 3901585}

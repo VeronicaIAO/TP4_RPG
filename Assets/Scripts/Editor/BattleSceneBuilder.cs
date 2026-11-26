@@ -113,7 +113,7 @@ namespace TPRPG.EditorTools
                     if (btn != null)
                     {
                         btn.interactable = true;
-                        ui.teamButton = btn;
+                        ui.ChangeTeammateButton = btn;
                         buttonResult = "connected";
                     }
                     else buttonResult = "'ChangeButton' has no Button component";
@@ -802,8 +802,7 @@ namespace TPRPG.EditorTools
             ui.playerBoxes = new[] { StatusBox("PlayerBox", c, new Vector2(1f, 0f), new Vector2(-760f, 315f), new Vector2(-60f, 585f)) };
 
             var teamBtnRect = Rect("ChangeTeammateButton", c, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-440f, -140f), new Vector2(-20f, -40f));
-            ui.teamButton = Btn("ChangeButton", teamBtnRect, "CHANGE TEAMMATE", new Color(0.6f, 0.4f, 0.85f), 34, Color.white, out t);
-            ui.teamButtonRoot = teamBtnRect.gameObject;
+            ui.ChangeTeammateButton = Btn("ChangeButton", teamBtnRect, "CHANGE TEAMMATE", new Color(0.6f, 0.4f, 0.85f), 34, Color.white, out t);
 
             var dialog = Box("DialogBox", c, Vector2.zero, new Vector2(1f, 0f), new Vector2(20f, 20f), new Vector2(-20f, 295f), new Color(0.17f, 0.27f, 0.36f), 9f, out Image tmpImg);
             var frame = Stretch("Frame", dialog, 8f);

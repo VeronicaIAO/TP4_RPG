@@ -23,6 +23,10 @@ namespace TPRPG
         public EnemyAI ai;
         public ActionChoreography choreography;
 
+        [Header("Change teammate")]
+        [Min(0.1f)] public float swapDelay = 0.6f;
+        [Range(0f, 100f)] public float swapInATB = 0f;
+
         [SerializeField] State state = State.Preparing;
         [SerializeField] bool executingAction;
 
@@ -31,6 +35,7 @@ namespace TPRPG
             public BattleUnit user;
             public ActionData action;
             public BattleUnit chosenTarget;
+            public BattleUnit swapTo;
         }
 
         readonly Queue<PendingAction> queue = new Queue<PendingAction>();
@@ -79,7 +84,13 @@ namespace TPRPG
             state = State.Running;
         }
 
-        public List<BattleUnit> TeamOf(BattleUnit u) => u.isPlayerSide ? players : enemies;
+        public List<BattleUnit> TeamOf(BattleUnit u)
+        {
+            if (!u.isPlayerSide) return enemies;
+            var all = new List<BattleUnit>(players);
+            all.AddRange(reserve);
+            return all;
+        }
         public List<BattleUnit> RivalsOf(BattleUnit u) => u.isPlayerSide ? enemies : players;
         public IEnumerable<BattleUnit> All()
         {
@@ -178,6 +189,11 @@ namespace TPRPG
             {
                 var p = queue.Dequeue();
                 queued.Remove(p.user);
+                if (p.swapTo != null)
+                {
+                    yield return ExecuteSwap(p.user, p.swapTo);
+                    continue;
+                }
                 if (!p.user.IsAlive)
                 {
                     if (p.action is ItemData it) Inventory.Refund(it);
@@ -282,7 +298,9 @@ namespace TPRPG
                 if (r.IsAlive) { replacement = r; break; }
             if (replacement == null) { Finish(State.Defeat); return; }
 
-            Swap(replacement, players[0], false);
+            BattleUnit fallen = players[0];
+            foreach (var p in players) if (!p.IsAlive) { fallen = p; break; }
+            Swap(replacement, fallen, false);
             Log($"{replacement.DisplayName} steps in!");
             if (feedback != null) feedback.Sound(FeedbackSound.Turn);
             replacement.Visual.Flash(Color.white, 0.4f);
@@ -294,13 +312,40 @@ namespace TPRPG
             var outgoing = ActivePlayer;
             if (!CanSwap || incoming == null || !incoming.IsAlive || !reserve.Contains(incoming)) return false;
 
-            Swap(incoming, outgoing, true);
-            Log($"{outgoing.DisplayName} swaps with {incoming.DisplayName}!");
+            waitingPlayers.Remove(outgoing);
+            queue.Enqueue(new PendingAction { user = outgoing, swapTo = incoming });
+            queued.Add(outgoing);
+            ShowNextPlayer();
+            return true;
+        }
+
+        IEnumerator ExecuteSwap(BattleUnit outgoing, BattleUnit incoming)
+        {
+            if (!outgoing.IsAlive || !incoming.IsAlive || !players.Contains(outgoing) || !reserve.Contains(incoming))
+            {
+                if (outgoing.IsAlive && players.Contains(outgoing))
+                {
+                    waitingPlayers.Insert(0, outgoing);
+                    ShowNextPlayer();
+                }
+                yield break;
+            }
+
+            float s = Mathf.Max(0.1f, Speed);
+            Log($"{outgoing.DisplayName}, come back!");
+            if (feedback != null) feedback.Sound(FeedbackSound.Whoosh);
+            outgoing.Visual.Flash(Color.white, swapDelay / s);
+            yield return new WaitForSeconds(swapDelay / s);
+
+            Swap(incoming, outgoing, false);
+            outgoing.atb = 0f;
+            incoming.atb = swapInATB;
+
+            Log($"Go, {incoming.DisplayName}!");
             if (feedback != null) feedback.Sound(FeedbackSound.Turn);
             incoming.Visual.Flash(Color.white, 0.4f);
             if (ui != null) ui.RefreshTeam();
-            ShowNextPlayer();
-            return true;
+            yield return new WaitForSeconds(swapDelay * 0.5f / s);
         }
 
         void Swap(BattleUnit incoming, BattleUnit outgoing, bool exchangeAtb)
