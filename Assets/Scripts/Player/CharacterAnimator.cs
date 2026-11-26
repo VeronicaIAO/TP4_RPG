@@ -72,6 +72,19 @@ namespace TPRPG
 
         public float Length(string clipName) => clipName != null && map.TryGetValue(clipName, out var c) ? c.length : 0f;
 
+        public IEnumerable<string> ClipNames => map.Keys;
+
+        public string FindClip(string wanted)
+        {
+            if (string.IsNullOrEmpty(wanted) || map.Count == 0) return null;
+            if (map.ContainsKey(wanted)) return wanted;
+            foreach (var k in map.Keys)
+                if (k.EndsWith(wanted, System.StringComparison.OrdinalIgnoreCase)) return k;
+            foreach (var k in map.Keys)
+                if (k.IndexOf(wanted, System.StringComparison.OrdinalIgnoreCase) >= 0) return k;
+            return null;
+        }
+
         public void Play(string clipName, bool loop, float fade = -1f, float speed = 1f)
         {
             if (!ready || clipName == null || !map.TryGetValue(clipName, out var clip)) return;

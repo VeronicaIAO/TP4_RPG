@@ -128,7 +128,16 @@ namespace TPRPG
 
         void Start()
         {
+            DiagnoseIdle();
             PlayIdle();
+        }
+
+        void DiagnoseIdle()
+        {
+            if (animator == null) { Debug.LogWarning($"[{name}] UnitVisual has no CharacterAnimator assigned: no idle animation.", this); return; }
+            if (!animator.HasClips) { Debug.LogWarning($"[{name}] CharacterAnimator has no clips: no idle animation.", this); return; }
+            if (animator.FindClip(idleClip) == null)
+                Debug.LogWarning($"[{name}] idle clip '{idleClip}' not found. Available: {string.Join(", ", animator.ClipNames)}", this);
         }
 
         public void PlayClip(string clipName, bool loop = false, float fade = -1f, float speed = 1f)
@@ -136,7 +145,12 @@ namespace TPRPG
             if (animator != null) animator.Play(clipName, loop, fade, speed);
         }
 
-        public void PlayIdle() { if (!knockedOut) PlayClip(idleClip, true); }
+        public void PlayIdle()
+        {
+            if (knockedOut || animator == null) return;
+            string clip = animator.FindClip(idleClip);
+            if (clip != null) animator.Play(clip, true);
+        }
 
         void LateUpdate()
         {

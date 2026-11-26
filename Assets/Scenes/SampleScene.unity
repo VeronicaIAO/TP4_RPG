@@ -338,7 +338,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8645319615437077292, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_Name
-      value: leg-rightj
+      value: leg-right
       objectReference: {fileID: 0}
     - target: {fileID: -6605950704870571936, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_Name
@@ -346,19 +346,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -3968866316597880248, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_Name
-      value: arm-rightj
+      value: arm-right
       objectReference: {fileID: 0}
     - target: {fileID: -1429105652388604818, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_Name
-      value: torsoj
+      value: torso
       objectReference: {fileID: 0}
     - target: {fileID: -1261458931914888818, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_Name
-      value: ModelJ
+      value: Model
       objectReference: {fileID: 0}
     - target: {fileID: 2092915129287387117, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_Name
-      value: body-meshj
+      value: body-mesh
       objectReference: {fileID: 0}
     - target: {fileID: 2857813796144463912, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_LocalScale.x
@@ -414,15 +414,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4212286678364202462, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_Name
-      value: arm-leftj
+      value: arm-left
       objectReference: {fileID: 0}
+    - target: {fileID: 7347915595749076023, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
+      propertyPath: m_Animation
+      value: 
+      objectReference: {fileID: 6669351404405404641, guid: d303a02d00983e643bade29f126e5379, type: 3}
+    - target: {fileID: 7347915595749076023, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
+      propertyPath: 'm_Animations.Array.data[0]'
+      value: 
+      objectReference: {fileID: 6669351404405404641, guid: d303a02d00983e643bade29f126e5379, type: 3}
+    - target: {fileID: 7347915595749076023, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
+      propertyPath: 'm_Animations.Array.data[1]'
+      value: 
+      objectReference: {fileID: -2474113961476506421, guid: d303a02d00983e643bade29f126e5379, type: 3}
     - target: {fileID: 8883111862694857549, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_Name
-      value: headj
+      value: head
       objectReference: {fileID: 0}
     - target: {fileID: 9032587745015798058, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_Name
-      value: leg-leftj
+      value: leg-left
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9929,6 +9941,8 @@ MonoBehaviour:
   feedback: {fileID: 685678380}
   ai: {fileID: 1326244824}
   choreography: {fileID: 1326244823}
+  swapDelay: 0.6
+  swapInATB: 0
   state: 0
   executingAction: 0
 --- !u!1 &1336349741
