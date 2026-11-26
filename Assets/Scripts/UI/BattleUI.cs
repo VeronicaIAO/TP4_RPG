@@ -7,7 +7,7 @@ namespace TPRPG
 {
     public class BattleUI : MonoBehaviour
     {
-        enum Menu { Hidden, Commands, Skills, Bag, Targets }
+        enum Menu { Hidden, Commands, Skills, Bag, Targets, Team }
 
         public UnitStatusRow[] playerBoxes = new UnitStatusRow[0];
         public UnitStatusRow[] enemyBoxes = new UnitStatusRow[0];
@@ -37,6 +37,12 @@ namespace TPRPG
         public RectTransform targetContainer;
         public Button targetCloseButton;
 
+        public Button teamButton;
+        public GameObject teamButtonRoot;
+        public GameObject teamPanel;
+        public RectTransform teamContainer;
+        public Button teamCloseButton;
+
         public GameObject resultPanel;
         public Text resultText;
         public Text resultSubtitle;
@@ -50,6 +56,7 @@ namespace TPRPG
         readonly List<GameObject> targetEntries = new List<GameObject>();
         readonly List<BattleUnit> currentCandidates = new List<BattleUnit>();
         readonly Queue<string> log = new Queue<string>();
+        readonly List<GameObject> teamEntries = new List<GameObject>();
 
         Menu menu = Menu.Hidden;
         Menu returnMenu = Menu.Commands;
@@ -77,6 +84,9 @@ namespace TPRPG
                 else if (returnMenu == Menu.Bag) OpenBag();
                 else BackToCommands();
             });
+            if (teamButton != null) teamButton.onClick.AddListener(() => { Click(); OpenTeam(); });
+            if (teamCloseButton != null) teamCloseButton.onClick.AddListener(() => { Click(); BackToCommands(); });
+            if (teamPanel != null) teamPanel.SetActive(false);
             if (restartButton != null) restartButton.onClick.AddListener(() => manager.Restart());
 
             if (resultPanel != null) resultPanel.SetActive(false);
@@ -99,6 +109,7 @@ namespace TPRPG
         {
             if (manager == null) return;
             foreach (var b in boxes) b.Refresh(b.Unit == currentUnit && menu != Menu.Hidden);
+            if (teamButton != null && menu == Menu.Commands) teamButton.interactable = manager.CanSwap;
             if (continueIndicator != null) continueIndicator.SetActive(menu == Menu.Hidden && !manager.BattleOver);
 
             if (menu == Menu.Targets && pendingAction != null && currentUnit != null)
@@ -122,7 +133,9 @@ namespace TPRPG
             skillsPanel.SetActive(m == Menu.Skills);
             bagPanel.SetActive(m == Menu.Bag);
             targetPanel.SetActive(m == Menu.Targets);
-            if (m == Menu.Hidden) RefreshDialog();
+            if (teamPanel != null) teamPanel.SetActive(m == Menu.Team);
+            if (teamButtonRoot != null) teamButtonRoot.SetActive(m == Menu.Commands);
+            //if (m == Menu.Hidden) RefreshDialog();
         }
 
         void Focus(Selectable first)
@@ -270,6 +283,115 @@ namespace TPRPG
             manager.SubmitPlayerAction(u, a, target);
         }
 
+
+        public void RefreshTeam()
+        {
+            boxes.Clear();
+            for (int i = 0; i < playerBoxes.Length; i++) Bind(playerBoxes[i], i < manager.players.Count ? manager.players[i] : null);
+            for (int i = 0; i < enemyBoxes.Length; i++) Bind(enemyBoxes[i], i < manager.enemies.Count ? manager.enemies[i] : null);
+        }
+
+        static Transform FindDeep(Transform root, string objName)
+        {
+            if (root.name == objName) return root;
+            foreach (Transform c in root)
+            {
+                var r = FindDeep(c, objName);
+                if (r != null) return r;
+            }
+            return null;
+        }
+
+
+        void OpenTeam()
+        {
+            if (currentUnit == null || teamPanel == null || teamContainer == null) return;
+            foreach (var g in teamEntries) Destroy(g);
+            teamEntries.Clear();
+
+            if (teamContainer.GetComponent<LayoutGroup>() == null)
+            {
+                var v = teamContainer.gameObject.AddComponent<VerticalLayoutGroup>();
+                v.spacing = 10f;
+                v.childControlWidth = true;
+                v.childControlHeight = true;
+                v.childForceExpandWidth = true;
+                v.childForceExpandHeight = false;
+            }
+
+            var roster = new List<BattleUnit>(manager.players);
+            roster.AddRange(manager.reserve);
+            foreach (var u in roster) AddTeamEntry(u);
+
+            Prompt("Who will take over?");
+            ShowPanel(Menu.Team);
+            Focus(teamCloseButton);
+        }
+
+        Text MakeText(Transform parent, string objName, string text, int size, Color color, Vector2 aMin, Vector2 aMax, Vector2 oMin, Vector2 oMax)
+        {
+            var g = new GameObject(objName, typeof(RectTransform), typeof(Text));
+            g.transform.SetParent(parent, false);
+            var rt = (RectTransform)g.transform;
+            rt.anchorMin = aMin; rt.anchorMax = aMax;
+            rt.offsetMin = oMin; rt.offsetMax = oMax;
+            var t = g.GetComponent<Text>();
+            t.font = dialogText != null ? dialogText.font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            t.text = text;
+            t.fontSize = size;
+            t.fontStyle = FontStyle.Bold;
+            t.alignment = TextAnchor.MiddleLeft;
+            t.color = color;
+            t.resizeTextForBestFit = true;
+            t.resizeTextMinSize = 12;
+            t.resizeTextMaxSize = size;
+            t.raycastTarget = false;
+            return t;
+        }
+
+        void AddTeamEntry(BattleUnit unit)
+        {
+            bool onField = manager.players.Contains(unit);
+
+            var root = new GameObject("Teammate_" + unit.DisplayName, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+            root.transform.SetParent(teamContainer, false);
+            root.GetComponent<LayoutElement>().preferredHeight = 150f;
+            var bg = root.GetComponent<Image>();
+            bg.color = !unit.IsAlive ? new Color(0.78f, 0.7f, 0.7f) : (onField ? new Color(1f, 0.95f, 0.7f) : new Color(0.95f, 0.95f, 0.98f));
+            var button = root.GetComponent<Button>();
+            button.targetGraphic = bg;
+
+            var face = new GameObject("Portrait", typeof(RectTransform), typeof(RawImage));
+            face.transform.SetParent(root.transform, false);
+            var frt = (RectTransform)face.transform;
+            frt.anchorMin = new Vector2(0f, 0f); frt.anchorMax = new Vector2(0f, 1f);
+            frt.offsetMin = new Vector2(10f, 8f); frt.offsetMax = new Vector2(142f, -8f);
+            var raw = face.GetComponent<RawImage>();
+            raw.raycastTarget = false;
+
+            Color dark = new Color(0.2f, 0.2f, 0.25f);
+            MakeText(root.transform, "Name", unit.DisplayName.ToUpper(), 44, dark,
+                new Vector2(0f, 0.45f), new Vector2(1f, 1f), new Vector2(162f, 0f), new Vector2(-20f, -8f));
+
+            string status;
+            Color statusColor;
+            if (!unit.IsAlive) { status = "K.O."; statusColor = new Color(0.6f, 0.2f, 0.2f); }
+            else if (onField) { status = "Already in action!"; statusColor = new Color(0.8f, 0.3f, 0.2f); }
+            else { status = $"HP {unit.currentHealth}/{unit.MaxHealth}    MP {unit.currentMana}/{unit.MaxMana}"; statusColor = new Color(0.3f, 0.45f, 0.8f); }
+            MakeText(root.transform, "Status", status, 28, statusColor,
+                new Vector2(0f, 0f), new Vector2(1f, 0.5f), new Vector2(162f, 8f), new Vector2(-20f, 0f));
+
+            button.onClick.AddListener(() =>
+            {
+                Click();
+                if (!unit.IsAlive) Prompt($"{unit.DisplayName} is knocked out!");
+                else if (manager.players.Contains(unit)) Prompt($"{unit.DisplayName} is already in action!");
+                else if (!manager.SwapActivePlayer(unit)) Prompt("Wait for the current action to finish.");
+            });
+
+            teamEntries.Add(root);
+        }
+
         public void UnitClicked(BattleUnit u)
         {
             if (menu == Menu.Targets && currentCandidates.Contains(u)) { Click(); Confirm(u); }
@@ -298,4 +420,5 @@ namespace TPRPG
             Focus(restartButton);
         }
     }
+
 }

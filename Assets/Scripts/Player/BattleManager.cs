@@ -14,6 +14,9 @@ namespace TPRPG
 
         public List<BattleUnit> players = new List<BattleUnit>();
         public List<BattleUnit> enemies = new List<BattleUnit>();
+        public List<BattleUnit> reserve = new List<BattleUnit>();
+        public Vector3 benchOrigin = new Vector3(0f, 0.05f, -60f);
+        public float benchSpacing = 4f;
 
         public BattleUI ui;
         public FeedbackManager feedback;
@@ -38,7 +41,17 @@ namespace TPRPG
         public State CurrentState => state;
         public bool BattleOver => state == State.Victory || state == State.Defeat;
         public BattleUnit ActivePlayer => waitingPlayers.Count > 0 ? waitingPlayers[0] : null;
+        public BattleUnit NextWaitingPlayer => waitingPlayers.Count > 1 ? waitingPlayers[1] : null;
         public int WaitingPlayers => waitingPlayers.Count;
+        public bool CanSwap
+        {
+            get
+            {
+                if (state != State.Running || executingAction || queue.Count > 0 || ActivePlayer == null) return false;
+                foreach (var r in reserve) if (r != null && r.IsAlive) return true;
+                return false;
+            }
+        }
         public bool ATBPaused { get; private set; }
 
         float Speed => config != null ? config.animationSpeed : 1f;
@@ -52,8 +65,14 @@ namespace TPRPG
             Inventory = new Inventory(startingInventory);
             players.RemoveAll(u => u == null);
             enemies.RemoveAll(u => u == null);
+            reserve.RemoveAll(u => u == null);
             foreach (var u in players) u.Initialize(this, true);
             foreach (var u in enemies) u.Initialize(this, false);
+            for (int i = 0; i < reserve.Count; i++)
+            {
+                reserve[i].Initialize(this, true);
+                reserve[i].transform.SetPositionAndRotation(benchOrigin + Vector3.right * benchSpacing * i, Quaternion.identity);
+            }
 
             if (ui != null) ui.Initialize(this);
             Log("The fight begins!");
@@ -72,15 +91,16 @@ namespace TPRPG
         {
             if (state != State.Running) return;
 
-            bool paused = (config.pauseATBDuringActions && executingAction) ||
-                          (config.atbMode == ATBMode.Wait && waitingPlayers.Count > 0);
-            ATBPaused = paused;
+            bool actionPause = config.pauseATBDuringActions && executingAction;
+            bool waitPause = config.atbMode == ATBMode.Wait && waitingPlayers.Count > 0;
+            ATBPaused = actionPause || waitPause;
 
-            if (!paused)
+            if (!actionPause)
             {
                 float dt = Time.deltaTime;
                 foreach (var u in All())
                 {
+                    if (waitPause && !u.isPlayerSide) continue;
                     if (!u.IsAlive || queued.Contains(u) || waitingPlayers.Contains(u)) continue;
                     u.AdvanceATB(dt, config.globalATBSpeed);
                     if (u.ReadyToAct) UnitReady(u);
@@ -202,7 +222,7 @@ namespace TPRPG
 
             foreach (var x in All())
             {
-                bool before = aliveBefore[x];
+                if (!aliveBefore.TryGetValue(x, out bool before)) continue;
                 if (before && !x.IsAlive) UnitFell(x);
                 else if (!before && x.IsAlive) x.Visual.SetKnockedOut(false);
             }
@@ -254,8 +274,61 @@ namespace TPRPG
             foreach (var e in enemies) if (e.IsAlive) enemiesLeft = true;
             foreach (var p in players) if (p.IsAlive) playersLeft = true;
 
-            if (!enemiesLeft) Finish(State.Victory);
-            else if (!playersLeft) Finish(State.Defeat);
+            if (!enemiesLeft) { Finish(State.Victory); return; }
+            if (playersLeft) return;
+
+            BattleUnit replacement = null;
+            foreach (var r in reserve)
+                if (r.IsAlive) { replacement = r; break; }
+            if (replacement == null) { Finish(State.Defeat); return; }
+
+            Swap(replacement, players[0], false);
+            Log($"{replacement.DisplayName} steps in!");
+            if (feedback != null) feedback.Sound(FeedbackSound.Turn);
+            replacement.Visual.Flash(Color.white, 0.4f);
+            if (ui != null) ui.RefreshTeam();
+        }
+
+        public bool SwapActivePlayer(BattleUnit incoming)
+        {
+            var outgoing = ActivePlayer;
+            if (!CanSwap || incoming == null || !incoming.IsAlive || !reserve.Contains(incoming)) return false;
+
+            Swap(incoming, outgoing, true);
+            Log($"{outgoing.DisplayName} swaps with {incoming.DisplayName}!");
+            if (feedback != null) feedback.Sound(FeedbackSound.Turn);
+            incoming.Visual.Flash(Color.white, 0.4f);
+            if (ui != null) ui.RefreshTeam();
+            ShowNextPlayer();
+            return true;
+        }
+
+        void Swap(BattleUnit incoming, BattleUnit outgoing, bool exchangeAtb)
+        {
+            int pi = players.IndexOf(outgoing);
+            int ri = reserve.IndexOf(incoming);
+            if (pi < 0 || ri < 0) return;
+
+            players[pi] = incoming;
+            reserve[ri] = outgoing;
+
+            int wi = waitingPlayers.IndexOf(outgoing);
+            if (wi >= 0) waitingPlayers[wi] = incoming;
+            queued.Remove(outgoing);
+
+            if (exchangeAtb)
+            {
+                float t = incoming.atb;
+                incoming.atb = outgoing.atb;
+                outgoing.atb = t;
+            }
+            outgoing.guarding = false;
+            outgoing.guardMultiplier = 1f;
+
+            Vector3 pos = outgoing.transform.position;
+            Quaternion rot = outgoing.transform.rotation;
+            outgoing.transform.SetPositionAndRotation(incoming.transform.position, incoming.transform.rotation);
+            incoming.transform.SetPositionAndRotation(pos, rot);
         }
 
         void Finish(State final)

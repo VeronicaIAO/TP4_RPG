@@ -23,6 +23,8 @@ namespace TPRPG.EditorTools
         const string DanielaObj = "Assets/Models/OBJ format/character-female-f.obj";
         const string LaraGlb = "Assets/Models/GLB format/character-female-d.glb";
         const string LaraObj = "Assets/Models/OBJ format/character-female-d.obj";
+        const string JuanaGlb = "Assets/Models/GLB format/character-female-b.glb";
+        const string JuanaObj = "Assets/Models/OBJ format/character-female-b.obj";
         const float ModelScale = 2f;
 
         [MenuItem("TP RPG/Build Battle Scene (data + scene)", priority = 0)]
@@ -40,11 +42,115 @@ namespace TPRPG.EditorTools
             EditorUtility.DisplayDialog("TP RPG", "Data created in " + DataDir, "OK");
         }
 
+        [MenuItem("TP RPG/Add Juana To Open Scene (keeps your edits)", priority = 5)]
+        public static void AddJuanaToOpenScene()
+        {
+            var manager = Object.FindFirstObjectByType<BattleManager>();
+            if (manager == null)
+            {
+                EditorUtility.DisplayDialog("TP RPG", "No BattleManager found in the open scene. Open your battle scene first.", "OK");
+                return;
+            }
+
+            var d = CreateData();
+
+            BattleUnit juana = null, daniela = null;
+            foreach (var x in Object.FindObjectsByType<BattleUnit>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (x.gameObject.name == "Juana") juana = x;
+                else if (x.gameObject.name == "Daniela") daniela = x;
+            }
+
+            if (juana == null)
+            {
+                string glb = JuanaGlb, obj = JuanaObj;
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(glb) == null && AssetDatabase.LoadAssetAtPath<GameObject>(obj) == null)
+                    PickSpareModel(out glb, out obj);
+                Transform parent = daniela != null ? daniela.transform.parent : null;
+                juana = CreateUnit("Juana", d.juana, parent, new Vector3(0f, 0.05f, -60f), new Vector3(1.9f, 0.05f, 2.5f), true, glb, obj);
+                Undo.RegisterCreatedObjectUndo(juana.gameObject, "Create Juana");
+            }
+
+            Undo.RecordObject(juana, "Assign Juana data");
+            juana.data = d.juana;
+            juana.isPlayerSide = true;
+            EditorUtility.SetDirty(juana);
+
+            Undo.RecordObject(manager, "Put Juana in reserve");
+            manager.players.RemoveAll(x => x == null || x == juana);
+            if (daniela != null && !manager.players.Contains(daniela)) manager.players.Insert(0, daniela);
+            manager.reserve.RemoveAll(x => x == null);
+            if (!manager.reserve.Contains(juana)) manager.reserve.Add(juana);
+            EditorUtility.SetDirty(manager);
+
+            string buttonResult = "no BattleUI found";
+            var ui = manager.ui != null ? manager.ui : Object.FindFirstObjectByType<BattleUI>();
+            if (ui != null)
+            {
+                Undo.RecordObject(ui, "Setup change button");
+
+                if (ui.playerBoxes == null || ui.playerBoxes.Length == 0 || ui.playerBoxes[0] == null)
+                {
+                    foreach (var row in Object.FindObjectsByType<UnitStatusRow>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                        if (row.name.Contains("Player")) { ui.playerBoxes = new[] { row }; break; }
+                }
+
+                var oldSwitches = new List<MonoBehaviour>();
+                foreach (var mb in ui.GetComponentsInChildren<MonoBehaviour>(true))
+                    if (mb != null && mb.GetType().Name == "PartnerSwitchButton") oldSwitches.Add(mb);
+                foreach (var mb in oldSwitches) Undo.DestroyObjectImmediate(mb);
+                foreach (var tr in ui.GetComponentsInChildren<Transform>(true))
+                    GameObjectUtility.RemoveMonoBehavioursWithMissingScript(tr.gameObject);
+
+                var root = ui.commandPanel != null ? ui.commandPanel.transform : ui.transform;
+                var cb = FindDeep(root, "ChangeButton");
+                if (cb == null) cb = FindDeep(ui.transform, "ChangeButton");
+                if (cb != null)
+                {
+                    var group = cb.GetComponent<CanvasGroup>();
+                    if (group != null) { group.alpha = 1f; group.blocksRaycasts = true; group.interactable = true; }
+                    var btn = cb.GetComponent<Button>();
+                    if (btn != null)
+                    {
+                        btn.interactable = true;
+                        ui.teamButton = btn;
+                        buttonResult = "connected";
+                    }
+                    else buttonResult = "'ChangeButton' has no Button component";
+                }
+                else buttonResult = "no object named 'ChangeButton' found";
+                EditorUtility.SetDirty(ui);
+            }
+
+            EditorSceneManager.MarkSceneDirty(manager.gameObject.scene);
+            Selection.activeGameObject = juana.gameObject;
+            string msg = "Juana is ready.\n\nPlayers: " + manager.players.Count + "   Reserve: " + manager.reserve.Count +
+                         "\nSkills: Slap (basic), Pep Talk, Cheer Squad, Sassy Comeback, Tattle\nChange button: " + buttonResult +
+                         "\n\nSave the scene (Ctrl+S) and press Play.";
+            Debug.Log("[TP RPG] " + msg.Replace("\n", " | "));
+            EditorUtility.DisplayDialog("TP RPG", msg, "OK");
+        }
+
+        static void PickSpareModel(out string glb, out string obj)
+        {
+            glb = DanielaGlb;
+            obj = DanielaObj;
+            if (!AssetDatabase.IsValidFolder("Assets/Models/GLB format")) return;
+            foreach (var guid in AssetDatabase.FindAssets("character", new[] { "Assets/Models/GLB format" }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.EndsWith(".glb") || path == DanielaGlb || path == LaraGlb) continue;
+                glb = path;
+                obj = path.Replace("GLB format", "OBJ format").Replace(".glb", ".obj");
+                return;
+            }
+        }
+
         public class CreatedData
         {
             public BattleConfig config;
             public InventoryData inventory;
-            public CharacterData daniela, lara;
+            public CharacterData daniela, juana, lara;
         }
 
         static void Folder(string path)
@@ -188,6 +294,22 @@ namespace TPRPG.EditorTools
                 new Look(ActionAnimation.Spit, HitReaction.Disgust, 0f, new Color(0.75f, 0.92f, 1f), FeedbackSound.Splat),
                 Damage(8, ATK), Stat(StatType.Defense, 0.85f, 2));
 
+            var jSlap = Skill("Juana_Slap", "Slap", "A quick open-hand slap. No cost, fast recovery.", 0, RIVAL, -10f,
+                new Look(ActionAnimation.Punch, HitReaction.Hurt, 0.2f, Color.white, FeedbackSound.Hit),
+                Damage(10, ATK));
+            var jPepTalk = Skill("Juana_PepTalk", "Pep Talk", "Whispers some encouragement to a friend: restores HP to one ally (scales with WIT).", 6, TargetType.SingleAlly, 10f,
+                new Look(ActionAnimation.None, HitReaction.None, 0f, ActionResolver.HealColor, FeedbackSound.Heal),
+                Heal(28, WIT));
+            var jCheer = Skill("Juana_CheerSquad", "Cheer Squad", "Hypes up the whole team: +25% ATK and +15% SPD for 3 turns.", 9, TargetType.AllAllies, 15f,
+                new Look(ActionAnimation.None, HitReaction.None, 0f, new Color(1f, 0.7f, 0.28f), FeedbackSound.Buff),
+                Stat(StatType.Attack, 1.25f, 3), Stat(StatType.Speed, 1.15f, 3));
+            var jComeback = Skill("Juana_SassyComeback", "Sassy Comeback", "A snappy reply that leaves her speechless: damage and -25% WIT for 3 turns. Fast recovery.", 5, RIVAL, -10f,
+                new Look(ActionAnimation.Insult, HitReaction.Outrage, 0f, new Color(1f, 0.55f, 0.85f), FeedbackSound.Verbal),
+                Damage(9, WIT), Stat(StatType.Wit, 0.75f, 3));
+            var jTattle = Skill("Juana_Tattle", "Tattle", "Runs to tell the teacher: moderate damage and pushes her ATB bar far back. Slow recovery.", 10, RIVAL, 30f,
+                new Look(ActionAnimation.Callout, HitReaction.Surprise, 0f, new Color(1f, 1f, 0.85f), FeedbackSound.Verbal),
+                Damage(14, WIT), ATB(-55f));
+
             var chocolate = Item("Item_ChocolateBar", "Chocolate Bar", "Restores 50 HP.", SELF, 10f,
                 new Look(ActionAnimation.Consume, HitReaction.None, 0f, new Color(0.4f, 1f, 0.5f), FeedbackSound.Heal), Heal(50, NONE));
             var energy = Item("Item_EnergyDrink", "Energy Drink", "Restores 25 MP and lets her act again quickly.", SELF, -40f,
@@ -218,9 +340,12 @@ namespace TPRPG.EditorTools
 
             var danielaVoice = Voice("Daniela_Voice", dPunch, dInsult, dHairPull, dShove);
             var laraVoice = Voice("Lara_Voice", lPunch, lCallout, lDefamation, lSpit);
+            var juanaVoice = Voice("Juana_Voice", jSlap, jPepTalk, jCheer, jComeback, jTattle);
 
             d.daniela = Character("Player_Daniela", "Daniela", new Color(0.55f, 0.75f, 1f), 160, 40, 15, 12, 12, 10f,
                 dPunch, guard, new[] { dInsult, dHairPull, dShove }, danielaVoice);
+            d.juana = Character("Player_Juana", "Juana", new Color(0.7f, 0.9f, 0.5f), 140, 55, 10, 11, 15, 11f,
+                jSlap, guard, new[] { jPepTalk, jCheer, jComeback, jTattle }, juanaVoice);
             d.lara = Character("Rival_Lara", "Lara", new Color(1f, 0.55f, 0.75f), 200, 45, 13, 12, 16, 9f,
                 lPunch, null, new[] { lCallout, lDefamation, lSpit }, laraVoice, AIProfile.Random, 0.55f);
 
@@ -323,7 +448,9 @@ namespace TPRPG.EditorTools
 
             Vector3 playerPos = new Vector3(-1.3f, 0.05f, -3.2f);
             Vector3 enemyPos = new Vector3(1.9f, 0.05f, 2.5f);
+            Vector3 juanaPos = new Vector3(0f, 0.05f, -60f);
             var daniela = CreateUnit("Daniela", d.daniela, playerSide.transform, playerPos, enemyPos, true, DanielaGlb, DanielaObj);
+            var juana = CreateUnit("Juana", d.juana, playerSide.transform, juanaPos, enemyPos, true, JuanaGlb, JuanaObj);
             var lara = CreateUnit("Lara", d.lara, enemySide.transform, enemyPos, playerPos, false, LaraGlb, LaraObj);
 
             var ui = BuildUI();
@@ -334,6 +461,7 @@ namespace TPRPG.EditorTools
             manager.config = d.config;
             manager.startingInventory = d.inventory;
             manager.players = new List<BattleUnit> { daniela };
+            manager.reserve = new List<BattleUnit> { juana };
             manager.enemies = new List<BattleUnit> { lara };
             manager.ui = ui;
             manager.feedback = feedback;
@@ -672,6 +800,10 @@ namespace TPRPG.EditorTools
 
             ui.enemyBoxes = new[] { StatusBox("RivalBox", c, new Vector2(0f, 1f), new Vector2(60f, -320f), new Vector2(760f, -50f)) };
             ui.playerBoxes = new[] { StatusBox("PlayerBox", c, new Vector2(1f, 0f), new Vector2(-760f, 315f), new Vector2(-60f, 585f)) };
+
+            var teamBtnRect = Rect("ChangeTeammateButton", c, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-440f, -140f), new Vector2(-20f, -40f));
+            ui.teamButton = Btn("ChangeButton", teamBtnRect, "CHANGE TEAMMATE", new Color(0.6f, 0.4f, 0.85f), 34, Color.white, out t);
+            ui.teamButtonRoot = teamBtnRect.gameObject;
 
             var dialog = Box("DialogBox", c, Vector2.zero, new Vector2(1f, 0f), new Vector2(20f, 20f), new Vector2(-20f, 295f), new Color(0.17f, 0.27f, 0.36f), 9f, out Image tmpImg);
             var frame = Stretch("Frame", dialog, 8f);

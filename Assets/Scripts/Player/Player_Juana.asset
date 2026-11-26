@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14112e5364a5b074f821b8c2130b572e, type: 3}
+  m_Name: Player_Juana
+  m_EditorClassIdentifier: Assembly-CSharp::TPRPG.CharacterData
+  displayName: Juana
+  mainColor: {r: 0.54901963, g: 1, b: 0.9577763, a: 1}
+  maxHealth: 180
+  maxMana: 40
+  attack: 25
+  defense: 22
+  wit: 22
+  speed: 12
+  startATBMin: 0
+  startATBMax: 45
+  basicAttack: {fileID: 11400000, guid: 87a58aec920c37c4ca84a22de74c6dd6, type: 2}
+  guardAction: {fileID: 11400000, guid: 8e6d4f023b72dd54a9ec646ac24d23ec, type: 2}
+  skills:
+  - {fileID: 11400000, guid: 2a57240562adfe24ab9b0fbedaae4feb, type: 2}
+  - {fileID: 11400000, guid: 9e3041f09c4f66c43b2581d03228c8a3, type: 2}
+  - {fileID: 11400000, guid: 452cdd53d8314fd4c847966f71af9b46, type: 2}
+  aiProfile: 0
+  skillChance: 0.4
+  voice: {fileID: 11400000, guid: 852167d296554fd459a6e4790aebf083, type: 2}
