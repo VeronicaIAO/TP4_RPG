@@ -361,6 +361,18 @@ PrefabInstance:
       value: body-meshj
       objectReference: {fileID: 0}
     - target: {fileID: 2857813796144463912, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2857813796144463912, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2857813796144463912, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2857813796144463912, guid: 5a26a9944309da0469e0ac0c6ea806cd, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -9907,10 +9919,10 @@ MonoBehaviour:
   startingInventory: {fileID: 11400000, guid: d5796a25250d2a942963a4d34e8448b1, type: 2}
   players:
   - {fileID: 157175402}
-  - {fileID: 745859237}
   enemies:
   - {fileID: 1305617344}
-  reserve: []
+  reserve:
+  - {fileID: 745859237}
   benchOrigin: {x: 0, y: 0.05, z: -60}
   benchSpacing: 4
   ui: {fileID: 2110175446}
